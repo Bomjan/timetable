@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6;
+  --color-secondary: #10b981;
+  --color-accent: #f59e0b;
+  --color-danger: #ef4444;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans;
+}
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 1px;
+  background-color: #e2e8f0;
+}
+
+.timetable-cell {
+  background-color: white;
+  min-height: 100px;
+  padding: 8px;
+  transition: all 0.2s ease;
+}
+
+.timetable-cell:hover {
+  background-color: #f8fafc;
+}
+
+.block-period {
+  grid-row: span var(--duration);
+}

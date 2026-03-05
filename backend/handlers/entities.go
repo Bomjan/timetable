@@ -1,0 +1,109 @@
+package handlers
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sundrabomjan/timetable/backend/db"
+	"github.com/sundrabomjan/timetable/backend/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func GetSubjects(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var subjects []models.Subject
+	cursor, err := db.Database.Collection("subjects").Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	cursor.All(ctx, &subjects)
+	c.JSON(http.StatusOK, subjects)
+}
+
+func CreateSubject(c *gin.Context) {
+	var subject models.Subject
+	if err := c.ShouldBindJSON(&subject); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	subject.ID = primitive.NewObjectID()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := db.Database.Collection("subjects").InsertOne(ctx, subject)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, subject)
+}
+
+func GetTeachers(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var teachers []models.Teacher
+	cursor, err := db.Database.Collection("teachers").Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	cursor.All(ctx, &teachers)
+	c.JSON(http.StatusOK, teachers)
+}
+
+func CreateTeacher(c *gin.Context) {
+	var teacher models.Teacher
+	if err := c.ShouldBindJSON(&teacher); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	teacher.ID = primitive.NewObjectID()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := db.Database.Collection("teachers").InsertOne(ctx, teacher)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, teacher)
+}
+
+func GetClasses(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var classes []models.Class
+	cursor, err := db.Database.Collection("classes").Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	cursor.All(ctx, &classes)
+	c.JSON(http.StatusOK, classes)
+}
+
+func CreateClass(c *gin.Context) {
+	var class models.Class
+	if err := c.ShouldBindJSON(&class); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	class.ID = primitive.NewObjectID()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := db.Database.Collection("classes").InsertOne(ctx, class)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, class)
+}
