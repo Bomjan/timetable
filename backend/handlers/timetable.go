@@ -20,7 +20,7 @@ func GetTimetable(c *gin.Context) {
 	classID, _ := primitive.ObjectIDFromHex(classIDStr)
 
 	if db.InMemoryMode {
-		var entries []models.TimetableEntry
+		entries := []models.TimetableEntry{}
 		for _, v := range db.Store.Timetable {
 			entry := v.(models.TimetableEntry)
 			if entry.ClassID == classID {
@@ -282,7 +282,7 @@ func GetWeeklyOverride(c *gin.Context) {
 	week, _ := strconv.Atoi(weekStr)
 
 	if db.InMemoryMode {
-		var entries []models.TimetableEntry
+		entries := []models.TimetableEntry{}
 		for _, v := range db.Store.Overrides {
 			entry := v.(models.TimetableEntry)
 			if entry.ClassID == classID && entry.Week == week {

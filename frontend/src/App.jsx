@@ -12,6 +12,7 @@ function App() {
   const [activeClass, setActiveClass] = useState(null);
   const [classes, setClasses] = useState([]);
   const [timetable, setTimetable] = useState([]);
+  const [week, setWeek] = useState(0); // 0 for default
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +35,10 @@ function App() {
       const fetchTimetable = async () => {
         setLoading(true);
         try {
-          const res = await api.get(`/timetable/${activeClass.id}`);
+          const url = week === 0 
+            ? `/timetable/${activeClass.id}`
+            : `/overrides/${activeClass.id}/${week}`;
+          const res = await api.get(url);
           setTimetable(res.data);
         } catch (err) {
           console.error("Failed to fetch timetable", err);
@@ -44,7 +48,7 @@ function App() {
       };
       fetchTimetable();
     }
-  }, [activeClass]);
+  }, [activeClass, week]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -62,7 +66,26 @@ function App() {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-800">{activeClass.name} Timetable</h2>
-                  <p className="text-slate-500">Drag and drop to rearrange periods</p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <p className="text-slate-500">Drag and drop to rearrange periods</p>
+                    <div className="flex items-center gap-2 ml-4 bg-white border border-slate-200 rounded-lg p-1">
+                      <button 
+                        onClick={() => setWeek(0)}
+                        className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${week === 0 ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                      >
+                        Default
+                      </button>
+                      {[1, 2, 3].map(w => (
+                        <button 
+                          key={w}
+                          onClick={() => setWeek(w)}
+                          className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${week === w ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                          Week {w}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm transition-all font-medium">
