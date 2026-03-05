@@ -32,3 +32,7 @@ body {
 .block-period {
   grid-row: span var(--duration);
 }
+
+#timetable-grid {
+  contain: paint;
+}

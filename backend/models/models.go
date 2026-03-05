@@ -20,14 +20,17 @@ type Class struct {
 }
 
 type TimetableEntry struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	ClassID   primitive.ObjectID `bson:"class_id" json:"class_id"`
-	Day       int                `bson:"day" json:"day"` // 1-5 (Mon-Fri)
-	Period    int                `bson:"period" json:"period"` // 1-7
-	SubjectID primitive.ObjectID `bson:"subject_id,omitempty" json:"subject_id"`
-	TeacherID primitive.ObjectID `bson:"teacher_id,omitempty" json:"teacher_id"`
-	Duration  int                `bson:"duration" json:"duration"` // Default 1
-	HasConflict bool             `bson:"-" json:"has_conflict"` // Virtual field
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ClassID     primitive.ObjectID `bson:"class_id" json:"class_id"`
+	Day         int                `bson:"day" json:"day"` // 1-5 (Mon-Fri)
+	Period      int                `bson:"period" json:"period"` // 1-7
+	SubjectID   primitive.ObjectID `bson:"subject_id,omitempty" json:"subject_id"`
+	TeacherID   primitive.ObjectID `bson:"teacher_id,omitempty" json:"teacher_id"`
+	Duration    int                `bson:"duration" json:"duration"` // Default 1
+	Week        int                `bson:"week,omitempty" json:"week,omitempty"` // 0 for default
+	SubjectName string             `bson:"-" json:"subject_name,omitempty"`
+	TeacherName string             `bson:"-" json:"teacher_name,omitempty"`
+	HasConflict bool               `bson:"-" json:"has_conflict"` // Virtual field
 }
 
 type WeeklyOverride struct {

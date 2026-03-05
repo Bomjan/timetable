@@ -11,19 +11,38 @@ import (
 
 var Client *mongo.Client
 var Database *mongo.Database
+var InMemoryMode = false
+
+// In-Memory Storage for Testing
+var Store = struct {
+	Subjects []interface{}
+	Teachers []interface{}
+	Classes  []interface{}
+	Timetable []interface{}
+	Overrides []interface{}
+}{
+	Subjects: []interface{}{},
+	Teachers: []interface{}{},
+	Classes:  []interface{}{},
+	Timetable: []interface{}{},
+	Overrides: []interface{}{},
+}
+
 
 func Connect() {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	log.Println("Connecting to MongoDB...")
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second) // Shorter timeout
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		log.Fatal(err)
+	if err == nil {
+		err = client.Ping(ctx, nil)
 	}
 
-	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("MongoDB not found. Switching to IN-MEMORY mode for testing.")
+		InMemoryMode = true
+		return
 	}
 
 	Client = client

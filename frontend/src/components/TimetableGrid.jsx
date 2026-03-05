@@ -8,11 +8,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import {
-  arraySwap,
-  SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import TimetableCell from './TimetableCell';
 
@@ -47,9 +43,6 @@ const TimetableGrid = ({ timetable, setTimetable, classId, api }) => {
       const activeData = active.data.current;
       const overData = over.data.current;
 
-      // Optimistic update
-      // For simplicity in this demo, we'll swap the data in the local state
-      // and call the backend swap endpoint
       try {
         await api.post('/timetable/swap', {
           class_id: classId,
@@ -57,7 +50,6 @@ const TimetableGrid = ({ timetable, setTimetable, classId, api }) => {
           slot2: { day: overData.day, period: overData.period }
         });
         
-        // Refresh timetable
         const res = await api.get(`/timetable/${classId}`);
         setTimetable(res.data);
       } catch (err) {

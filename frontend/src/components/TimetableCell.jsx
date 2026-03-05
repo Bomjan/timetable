@@ -58,14 +58,14 @@ const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit }) => {
                   {entry.duration > 1 ? (
                     <button 
                       onClick={(e) => { e.stopPropagation(); onSplit(entry); }}
-                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600"
+                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600 font-bold"
                     >
                       Split Block
                     </button>
                   ) : (
                     <button 
                       onClick={(e) => { e.stopPropagation(); onMerge(entry); }}
-                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600"
+                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600 font-bold"
                     >
                       Merge with Next
                     </button>
@@ -74,14 +74,13 @@ const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit }) => {
               </div>
             </div>
             <div className="mt-2 text-[11px] text-slate-500 space-y-1">
-              <p className="font-medium">{entry.teacher_name || "Mr. Smith"}</p>
+              <p className="font-medium text-slate-600">{entry.teacher_name || "Mr. Smith"}</p>
               {entry.duration > 1 && (
                 <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full font-bold">
                   {entry.duration} Periods
                 </span>
               )}
             </div>
-            {/* Conflict Warning Placeholder */}
             {entry.has_conflict && (
               <div className="absolute top-1 right-1 text-red-500">
                 <AlertCircle size={14} fill="currentColor" className="text-white" />

@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +18,37 @@ import (
 func GetTimetable(c *gin.Context) {
 	classIDStr := c.Param("class_id")
 	classID, _ := primitive.ObjectIDFromHex(classIDStr)
+
+	if db.InMemoryMode {
+		var entries []models.TimetableEntry
+		for _, v := range db.Store.Timetable {
+			entry := v.(models.TimetableEntry)
+			if entry.ClassID == classID {
+				entries = append(entries, entry)
+			}
+		}
+
+		// Conflict detection for in-memory mode
+		for i := range entries {
+			if !entries[i].TeacherID.IsZero() {
+				var count int64
+				for _, v := range db.Store.Timetable {
+					e := v.(models.TimetableEntry)
+					if e.Day == entries[i].Day && e.Period == entries[i].Period && e.TeacherID.Hex() == entries[i].TeacherID.Hex() {
+						if e.ClassID.Hex() != entries[i].ClassID.Hex() {
+							count++
+						}
+					}
+				}
+				if count > 0 {
+					entries[i].HasConflict = true
+				}
+			}
+		}
+
+		c.JSON(http.StatusOK, entries)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -31,12 +64,26 @@ func GetTimetable(c *gin.Context) {
 	// Add conflict info
 	for i := range entries {
 		if !entries[i].TeacherID.IsZero() {
-			count, _ := db.Database.Collection("timetables").CountDocuments(ctx, bson.M{
-				"day":        entries[i].Day,
-				"period":     entries[i].Period,
-				"teacher_id": entries[i].TeacherID,
-				"class_id":   bson.M{"$ne": entries[i].ClassID},
-			})
+			var count int64
+			if db.InMemoryMode {
+				for _, v := range db.Store.Timetable {
+					e := v.(models.TimetableEntry)
+					if e.Day == entries[i].Day && e.Period == entries[i].Period && e.TeacherID.Hex() == entries[i].TeacherID.Hex() {
+						log.Printf("Match found: Teacher=%s, ClassE=%s, ClassEntry=%s", e.TeacherID.Hex(), e.ClassID.Hex(), entries[i].ClassID.Hex())
+						if e.ClassID.Hex() != entries[i].ClassID.Hex() {
+							log.Println("CONFLICT DETECTED in in-memory mode!")
+							count++
+						}
+					}
+				}
+			} else {
+				count, _ = db.Database.Collection("timetables").CountDocuments(ctx, bson.M{
+					"day":        entries[i].Day,
+					"period":     entries[i].Period,
+					"teacher_id": entries[i].TeacherID,
+					"class_id":   bson.M{"$ne": entries[i].ClassID},
+				})
+			}
 			if count > 0 {
 				entries[i].HasConflict = true
 			}
@@ -49,6 +96,23 @@ func UpdateSlot(c *gin.Context) {
 	var entry models.TimetableEntry
 	if err := c.ShouldBindJSON(&entry); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if db.InMemoryMode {
+		found := false
+		for i, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID == entry.ClassID && e.Day == entry.Day && e.Period == entry.Period {
+				db.Store.Timetable[i] = entry
+				found = true
+				break
+			}
+		}
+		if !found {
+			db.Store.Timetable = append(db.Store.Timetable, entry)
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "success"})
 		return
 	}
 
@@ -89,24 +153,29 @@ func SwapSlots(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	var entry1, entry2 models.TimetableEntry
-	db.Database.Collection("timetables").FindOne(ctx, bson.M{"class_id": req.ClassID, "day": req.Slot1.Day, "period": req.Slot1.Period}).Decode(&entry1)
-	db.Database.Collection("timetables").FindOne(ctx, bson.M{"class_id": req.ClassID, "day": req.Slot2.Day, "period": req.Slot2.Period}).Decode(&entry2)
-
-	// Update Slot 1 with Data 2
-	filter1 := bson.M{"class_id": req.ClassID, "day": req.Slot1.Day, "period": req.Slot1.Period}
-	update1 := bson.M{"$set": bson.M{"subject_id": entry2.SubjectID, "teacher_id": entry2.TeacherID, "duration": entry2.Duration}}
-	db.Database.Collection("timetables").UpdateOne(ctx, filter1, update1)
-
-	// Update Slot 2 with Data 1
-	filter2 := bson.M{"class_id": req.ClassID, "day": req.Slot2.Day, "period": req.Slot2.Period}
-	update2 := bson.M{"$set": bson.M{"subject_id": entry1.SubjectID, "teacher_id": entry1.TeacherID, "duration": entry1.Duration}}
-	db.Database.Collection("timetables").UpdateOne(ctx, filter2, update2)
-
-	c.JSON(http.StatusOK, gin.H{"status": "swapped"})
+	if db.InMemoryMode {
+		var idx1, idx2 = -1, -1
+		var entry1, entry2 models.TimetableEntry
+		for i, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID == req.ClassID && e.Day == req.Slot1.Day && e.Period == req.Slot1.Period {
+				idx1 = i
+				entry1 = e
+			}
+			if e.ClassID == req.ClassID && e.Day == req.Slot2.Day && e.Period == req.Slot2.Period {
+				idx2 = i
+				entry2 = e
+			}
+		}
+		if idx1 != -1 && idx2 != -1 {
+			// Swap fields
+			entry1.Day, entry1.Period, entry2.Day, entry2.Period = entry2.Day, entry2.Period, entry1.Day, entry1.Period
+			db.Store.Timetable[idx1] = entry2
+			db.Store.Timetable[idx2] = entry1
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "swapped"})
+		return
+	}
 }
 
 func MergeSlots(c *gin.Context) {
@@ -119,6 +188,29 @@ func MergeSlots(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if db.InMemoryMode {
+		for i, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID == req.ClassID && e.Day == req.Day && e.Period == req.Period {
+				e.Duration = req.Count
+				db.Store.Timetable[i] = e
+				break
+			}
+		}
+		// Remove subsequent
+		for i := 1; i < req.Count; i++ {
+			for j := 0; j < len(db.Store.Timetable); j++ {
+				e := db.Store.Timetable[j].(models.TimetableEntry)
+				if e.ClassID == req.ClassID && e.Day == req.Day && e.Period == req.Period+i {
+					db.Store.Timetable = append(db.Store.Timetable[:j], db.Store.Timetable[j+1:]...)
+					j--
+				}
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "merged"})
 		return
 	}
 
@@ -152,6 +244,19 @@ func SplitSlot(c *gin.Context) {
 		return
 	}
 
+	if db.InMemoryMode {
+		for i, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID == req.ClassID && e.Day == req.Day && e.Period == req.Period {
+				e.Duration = 1
+				db.Store.Timetable[i] = e
+				break
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "split"})
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -171,9 +276,87 @@ func SplitSlot(c *gin.Context) {
 }
 
 func GetWeeklyOverride(c *gin.Context) {
-	// ... implementation for overrides
+	classIDStr := c.Param("class_id")
+	weekStr := c.Param("week")
+	classID, _ := primitive.ObjectIDFromHex(classIDStr)
+	week, _ := strconv.Atoi(weekStr)
+
+	if db.InMemoryMode {
+		var entries []models.TimetableEntry
+		for _, v := range db.Store.Overrides {
+			entry := v.(models.TimetableEntry)
+			if entry.ClassID == classID && entry.Week == week {
+				entries = append(entries, entry)
+			}
+		}
+		c.JSON(http.StatusOK, entries)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var entries []models.TimetableEntry
+	cursor, err := db.Database.Collection("weekly_overrides").Find(ctx, bson.M{"class_id": classID, "week": week})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	cursor.All(ctx, &entries)
+	c.JSON(http.StatusOK, entries)
 }
 
 func SaveWeeklyOverride(c *gin.Context) {
-	// ... implementation for overrides
+	var req struct {
+		ClassID primitive.ObjectID     `json:"class_id"`
+		Week    int                    `json:"week"`
+		Entries []models.TimetableEntry `json:"entries"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if db.InMemoryMode {
+		// Clean existing for this week
+		newOverrides := []interface{}{}
+		for _, v := range db.Store.Overrides {
+			e := v.(models.TimetableEntry)
+			if e.ClassID != req.ClassID || e.Week != req.Week {
+				newOverrides = append(newOverrides, v)
+			}
+		}
+		for _, e := range req.Entries {
+			e.ClassID = req.ClassID
+			e.Week = req.Week
+			newOverrides = append(newOverrides, e)
+		}
+		db.Store.Overrides = newOverrides
+		c.JSON(http.StatusOK, gin.H{"status": "saved"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 1. Delete existing overrides for this week
+	db.Database.Collection("weekly_overrides").DeleteMany(ctx, bson.M{"class_id": req.ClassID, "week": req.Week})
+
+	// 2. Insert new entries
+	if len(req.Entries) > 0 {
+		var docs []interface{}
+		for _, e := range req.Entries {
+			e.ClassID = req.ClassID
+			e.Week = req.Week
+			docs = append(docs, e)
+		}
+		_, err := db.Database.Collection("weekly_overrides").InsertMany(ctx, docs)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "saved"})
 }

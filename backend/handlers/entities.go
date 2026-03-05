@@ -13,6 +13,10 @@ import (
 )
 
 func GetSubjects(c *gin.Context) {
+	if db.InMemoryMode {
+		c.JSON(http.StatusOK, db.Store.Subjects)
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -33,6 +37,13 @@ func CreateSubject(c *gin.Context) {
 		return
 	}
 	subject.ID = primitive.NewObjectID()
+
+	if db.InMemoryMode {
+		db.Store.Subjects = append(db.Store.Subjects, subject)
+		c.JSON(http.StatusOK, subject)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -45,6 +56,10 @@ func CreateSubject(c *gin.Context) {
 }
 
 func GetTeachers(c *gin.Context) {
+	if db.InMemoryMode {
+		c.JSON(http.StatusOK, db.Store.Teachers)
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -65,6 +80,13 @@ func CreateTeacher(c *gin.Context) {
 		return
 	}
 	teacher.ID = primitive.NewObjectID()
+
+	if db.InMemoryMode {
+		db.Store.Teachers = append(db.Store.Teachers, teacher)
+		c.JSON(http.StatusOK, teacher)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -77,6 +99,10 @@ func CreateTeacher(c *gin.Context) {
 }
 
 func GetClasses(c *gin.Context) {
+	if db.InMemoryMode {
+		c.JSON(http.StatusOK, db.Store.Classes)
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -97,6 +123,13 @@ func CreateClass(c *gin.Context) {
 		return
 	}
 	class.ID = primitive.NewObjectID()
+
+	if db.InMemoryMode {
+		db.Store.Classes = append(db.Store.Classes, class)
+		c.JSON(http.StatusOK, class)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import TimetableGrid from './components/TimetableGrid';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import PDFExportButton from './components/PDFExportButton';
 import axios from 'axios';
 
 const api = axios.create({
@@ -66,10 +65,9 @@ function App() {
                   <p className="text-slate-500">Drag and drop to rearrange periods</p>
                 </div>
                 <div className="flex gap-2">
-                  <PDFExportButton 
-                    targetId="timetable-grid"
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm transition-all font-medium" 
-                  />
+                  <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm transition-all font-medium">
+                    Export PDF
+                  </button>
                   <button className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 shadow-md transition-all font-medium">
                     Save Changes
                   </button>
@@ -90,8 +88,17 @@ function App() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-center">
               <p className="text-xl">Select a class to view its timetable</p>
+              <button 
+                onClick={async () => {
+                  await api.post('/classes', { name: 'Class 10A' });
+                  window.location.reload();
+                }}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium shadow-lg shadow-blue-900/10"
+              >
+                Create Sample Class
+              </button>
             </div>
           )}
         </main>
