@@ -1,6 +1,9 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+    "go.mongodb.org/mongo-driver/bson/primitive"
+    "os"
+)
 
 type Subject struct {
 	ID   primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -39,3 +42,43 @@ type WeeklyOverride struct {
 	ClassID    primitive.ObjectID `bson:"class_id" json:"class_id"`
 	Entries    []TimetableEntry   `bson:"entries" json:"entries"`
 }
+// Config holds MongoDB connection configuration.
+type Config struct {
+    DBUser     string
+    DBPassword string
+    DBHost     string
+    DBPort     string
+    DBName     string
+}
+
+// AppConfig is the global configuration instance.
+var AppConfig Config
+
+// LoadConfig populates AppConfig from environment variables or defaults.
+func LoadConfig() {
+    AppConfig = Config{
+        DBUser:     os.Getenv("DB_USER"),
+        DBPassword: os.Getenv("DB_PASSWORD"),
+        DBHost:     os.Getenv("DB_HOST"),
+        DBPort:     os.Getenv("DB_PORT"),
+        DBName:     os.Getenv("DB_NAME"),
+    }
+    
+    // Use defaults from models.go comments if not provided via env
+    if AppConfig.DBUser == "" {
+        AppConfig.DBUser = "sundrabomjan_db_user"
+    }
+    if AppConfig.DBPassword == "" {
+        AppConfig.DBPassword = "Y8SryA7wl8UkwOT7"
+    }
+    if AppConfig.DBHost == "" {
+        // Since it's an SRV connection, we'll handle the connection string logic in Connect
+        AppConfig.DBHost = "cluster0.jicst7g.mongodb.net" 
+    }
+    if AppConfig.DBName == "" {
+        AppConfig.DBName = "timetable_db"
+    }
+}
+
+// Y8SryA7wl8UkwOT7
+// mongosh "mongodb+srv://cluster0.jicst7g.mongodb.net/" --apiVersion 1 --username sundrabomjan_db_user --password Y8SryA7wl8UkwOT7

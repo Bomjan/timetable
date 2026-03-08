@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/Bomjan/timetable/backend/db"
+	"github.com/Bomjan/timetable/backend/handlers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sundrabomjan/timetable/backend/db"
-	"github.com/sundrabomjan/timetable/backend/handlers"
 )
 
 func main() {
@@ -20,6 +20,7 @@ func main() {
 	r.POST("/teachers", handlers.CreateTeacher)
 	r.GET("/classes", handlers.GetClasses)
 	r.POST("/classes", handlers.CreateClass)
+	r.DELETE("/classes/:id", handlers.DeleteClass)
 
 	// Timetable
 	r.GET("/timetable/:class_id", handlers.GetTimetable)

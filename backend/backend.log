@@ -1,0 +1,68 @@
+nohup: ignoring input
+2026/03/05 17:51:16 Connecting to MongoDB...
+2026/03/05 17:51:19 MongoDB not found. Switching to IN-MEMORY mode for testing.
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /subjects                 --> github.com/Bomjan/timetable/backend/handlers.GetSubjects (4 handlers)
+[GIN-debug] POST   /subjects                 --> github.com/Bomjan/timetable/backend/handlers.CreateSubject (4 handlers)
+[GIN-debug] GET    /teachers                 --> github.com/Bomjan/timetable/backend/handlers.GetTeachers (4 handlers)
+[GIN-debug] POST   /teachers                 --> github.com/Bomjan/timetable/backend/handlers.CreateTeacher (4 handlers)
+[GIN-debug] GET    /classes                  --> github.com/Bomjan/timetable/backend/handlers.GetClasses (4 handlers)
+[GIN-debug] POST   /classes                  --> github.com/Bomjan/timetable/backend/handlers.CreateClass (4 handlers)
+[GIN-debug] DELETE /classes/:id              --> github.com/Bomjan/timetable/backend/handlers.DeleteClass (4 handlers)
+[GIN-debug] GET    /timetable/:class_id      --> github.com/Bomjan/timetable/backend/handlers.GetTimetable (4 handlers)
+[GIN-debug] POST   /timetable/swap           --> github.com/Bomjan/timetable/backend/handlers.SwapSlots (4 handlers)
+[GIN-debug] POST   /timetable/update         --> github.com/Bomjan/timetable/backend/handlers.UpdateSlot (4 handlers)
+[GIN-debug] POST   /timetable/merge          --> github.com/Bomjan/timetable/backend/handlers.MergeSlots (4 handlers)
+[GIN-debug] POST   /timetable/split          --> github.com/Bomjan/timetable/backend/handlers.SplitSlot (4 handlers)
+[GIN-debug] GET    /overrides/:class_id/:week --> github.com/Bomjan/timetable/backend/handlers.GetWeeklyOverride (4 handlers)
+[GIN-debug] POST   /overrides                --> github.com/Bomjan/timetable/backend/handlers.SaveWeeklyOverride (4 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://github.com/gin-gonic/gin/blob/master/docs/doc.md#dont-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2026/03/05 - 17:52:53 | 200 | 503.726µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/05 - 17:52:53 | 200 | 106.54µs |             ::1 | GET      "/timetable/69a96869c681cae720b5e7dc"
+[GIN] 2026/03/05 - 17:52:55 | 200 |  74.35µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/05 - 17:52:55 | 200 | 19.026µs |             ::1 | GET      "/timetable/69a96869c681cae720b5e7dc"
+[GIN] 2026/03/05 - 17:53:08 | 200 | 20.118µs |             ::1 | GET      "/timetable/69a96bfac681cae720b5e7de"
+[GIN] 2026/03/05 - 17:53:14 | 204 |  8.836µs |             ::1 | OPTIONS  "/classes/69a96bfac681cae720b5e7de"
+[GIN] 2026/03/05 - 17:53:15 | 200 | 33.052µs |             ::1 | DELETE   "/classes/69a96bfac681cae720b5e7de"
+[GIN] 2026/03/05 - 17:53:15 | 200 | 29.766µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/05 - 19:01:33 | 200 | 25.719µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/05 - 19:01:33 | 200 | 12.994µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/06 - 12:08:52 | 204 | 39.498µs |             ::1 | OPTIONS  "/classes"
+[GIN] 2026/03/06 - 12:08:52 | 200 | 125.398µs |             ::1 | POST     "/classes"
+[GIN] 2026/03/08 - 11:53:34 | 200 | 50.148µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:53:34 | 200 | 25.088µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:53:34 | 200 |  20.74µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:36 | 204 |  9.929µs |             ::1 | OPTIONS  "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:36 | 200 | 46.921µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:36 | 200 | 18.966µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:37 | 200 | 57.492µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:37 | 200 | 18.776µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:38 | 200 | 50.428µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:38 | 200 | 15.701µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:39 | 200 | 89.113µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:39 | 200 | 15.951µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:39 | 200 | 81.528µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:53:39 | 200 | 21.872µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:53:40 | 200 | 19.978µs |             ::1 | GET      "/overrides/69aa6f74dc58c0201db5ac75/2"
+[GIN] 2026/03/08 - 11:53:42 | 200 |  15.71µs |             ::1 | GET      "/overrides/69aa6f74dc58c0201db5ac75/1"
+[GIN] 2026/03/08 - 11:55:03 | 200 | 42.799µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:55:03 | 200 | 36.481µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:55:03 | 200 | 19.797µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:55:03 | 200 |  21.45µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:55:05 | 200 | 78.438µs |             ::1 | POST     "/timetable/swap"
+[GIN] 2026/03/08 - 11:55:05 | 200 | 26.496µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:55:06 | 200 | 33.006µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:55:06 | 200 | 26.627µs |             ::1 | GET      "/classes"
+[GIN] 2026/03/08 - 11:55:06 | 200 | 12.217µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:55:06 | 200 | 11.836µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"
+[GIN] 2026/03/08 - 11:55:12 | 200 | 14.841µs |             ::1 | GET      "/overrides/69aa6f74dc58c0201db5ac75/3"
+[GIN] 2026/03/08 - 11:55:13 | 200 | 16.153µs |             ::1 | GET      "/overrides/69aa6f74dc58c0201db5ac75/2"
+[GIN] 2026/03/08 - 11:55:14 | 200 | 18.655µs |             ::1 | GET      "/overrides/69aa6f74dc58c0201db5ac75/1"
+[GIN] 2026/03/08 - 11:55:15 | 200 | 13.869µs |             ::1 | GET      "/timetable/69aa6f74dc58c0201db5ac75"

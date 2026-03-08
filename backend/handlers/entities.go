@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Bomjan/timetable/backend/db"
+	"github.com/Bomjan/timetable/backend/models"
 	"github.com/gin-gonic/gin"
-	"github.com/sundrabomjan/timetable/backend/db"
-	"github.com/sundrabomjan/timetable/backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -139,4 +139,29 @@ func CreateClass(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, class)
+}
+func DeleteClass(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := primitive.ObjectIDFromHex(idStr)
+
+	if db.InMemoryMode {
+		for i, v := range db.Store.Classes {
+			if v.(models.Class).ID == id {
+				db.Store.Classes = append(db.Store.Classes[:i], db.Store.Classes[i+1:]...)
+				break
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "deleted"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := db.Database.Collection("classes").DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted"})
 }

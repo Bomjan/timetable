@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Bomjan/timetable/backend/db"
+	"github.com/Bomjan/timetable/backend/models"
 	"github.com/gin-gonic/gin"
-	"github.com/sundrabomjan/timetable/backend/db"
-	"github.com/sundrabomjan/timetable/backend/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"

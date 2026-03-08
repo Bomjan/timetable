@@ -1,4 +1,4 @@
-module github.com/sundrabomjan/timetable/backend
+module github.com/Bomjan/timetable/backend
 
 go 1.25.5
 

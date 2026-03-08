@@ -15,19 +15,20 @@ function App() {
   const [week, setWeek] = useState(0); // 0 for default
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const classesRes = await api.get('/classes');
-        setClasses(classesRes.data);
-        if (classesRes.data.length > 0) {
-          setActiveClass(classesRes.data[0]);
-        }
-      } catch (err) {
-        console.error("Failed to fetch classes", err);
+  const fetchClasses = async () => {
+    try {
+      const classesRes = await api.get('/classes');
+      setClasses(classesRes.data);
+      if (classesRes.data.length > 0 && !activeClass) {
+        setActiveClass(classesRes.data[0]);
       }
-    };
-    fetchData();
+    } catch (err) {
+      console.error("Failed to fetch classes", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchClasses();
   }, []);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ function App() {
           activeClass={activeClass} 
           setActiveClass={setActiveClass} 
           api={api}
+          onRefresh={fetchClasses}
         />
         <main className="flex-1 overflow-auto p-6 bg-slate-50">
           {activeClass ? (
