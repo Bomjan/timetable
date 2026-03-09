@@ -1,6 +1,6 @@
 import React from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import { toPng } from 'html-to-image';
 import { Download } from 'lucide-react';
 
 const PDFExportButton = ({ targetId, className }) => {
@@ -9,20 +9,22 @@ const PDFExportButton = ({ targetId, className }) => {
     if (!element) return;
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false
+      const dataUrl = await toPng(element, { 
+        pixelRatio: 2, 
+        cacheBust: true,
+        backgroundColor: '#ffffff'
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const width = element.offsetWidth;
+      const height = element.offsetHeight;
+      
       const pdf = new jsPDF({
-        orientation: 'landscape',
+        orientation: width > height ? 'landscape' : 'portrait',
         unit: 'px',
-        format: [canvas.width, canvas.height]
+        format: [width, height]
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.addImage(dataUrl, 'PNG', 0, 0, width, height);
       pdf.save('timetable.pdf');
     } catch (err) {
       console.error("PDF Export failed", err);

@@ -53,7 +53,7 @@ func GetTimetable(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var entries []models.TimetableEntry
+	entries := []models.TimetableEntry{}
 	cursor, err := db.Database.Collection("timetables").Find(ctx, bson.M{"class_id": classID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -176,6 +176,46 @@ func SwapSlots(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "swapped"})
 		return
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var entry1, entry2 models.TimetableEntry
+	err1 := db.Database.Collection("timetables").FindOne(ctx, bson.M{
+		"class_id": req.ClassID,
+		"day":      req.Slot1.Day,
+		"period":   req.Slot1.Period,
+	}).Decode(&entry1)
+
+	err2 := db.Database.Collection("timetables").FindOne(ctx, bson.M{
+		"class_id": req.ClassID,
+		"day":      req.Slot2.Day,
+		"period":   req.Slot2.Period,
+	}).Decode(&entry2)
+
+	// If neither exists, nothing to swap
+	if err1 != nil && err2 != nil {
+		c.JSON(http.StatusOK, gin.H{"status": "swapped (empty)"})
+		return
+	}
+
+	// If entry 1 exists, move it to slot 2
+	if err1 == nil {
+		db.Database.Collection("timetables").UpdateOne(ctx,
+			bson.M{"_id": entry1.ID},
+			bson.M{"$set": bson.M{"day": req.Slot2.Day, "period": req.Slot2.Period}},
+		)
+	}
+
+	// If entry 2 exists, move it to slot 1
+	if err2 == nil {
+		db.Database.Collection("timetables").UpdateOne(ctx,
+			bson.M{"_id": entry2.ID},
+			bson.M{"$set": bson.M{"day": req.Slot1.Day, "period": req.Slot1.Period}},
+		)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "swapped"})
 }
 
 func MergeSlots(c *gin.Context) {
@@ -275,6 +315,60 @@ func SplitSlot(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "split"})
 }
 
+func SaveTimetable(c *gin.Context) {
+	var req struct {
+		ClassID primitive.ObjectID      `json:"class_id"`
+		Entries []models.TimetableEntry `json:"entries"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if db.InMemoryMode {
+		newTimetable := []interface{}{}
+		for _, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID != req.ClassID {
+				newTimetable = append(newTimetable, v)
+			}
+		}
+		for _, e := range req.Entries {
+			e.ClassID = req.ClassID
+			newTimetable = append(newTimetable, e)
+		}
+		db.Store.Timetable = newTimetable
+		c.JSON(http.StatusOK, gin.H{"status": "saved"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// 1. Delete existing for this class
+	db.Database.Collection("timetables").DeleteMany(ctx, bson.M{"class_id": req.ClassID})
+
+	// 2. Insert new entries
+	if len(req.Entries) > 0 {
+		var docs []interface{}
+		for _, e := range req.Entries {
+			e.ClassID = req.ClassID
+			if e.ID.IsZero() {
+				e.ID = primitive.NewObjectID()
+			}
+			docs = append(docs, e)
+		}
+		_, err := db.Database.Collection("timetables").InsertMany(ctx, docs)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "saved"})
+}
+
 func GetWeeklyOverride(c *gin.Context) {
 	classIDStr := c.Param("class_id")
 	weekStr := c.Param("week")
@@ -296,7 +390,7 @@ func GetWeeklyOverride(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	var entries []models.TimetableEntry
+	entries := []models.TimetableEntry{}
 	cursor, err := db.Database.Collection("weekly_overrides").Find(ctx, bson.M{"class_id": classID, "week": week})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -359,4 +453,33 @@ func SaveWeeklyOverride(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "saved"})
+}
+
+func ClearTimetable(c *gin.Context) {
+	classIDStr := c.Param("class_id")
+	classID, _ := primitive.ObjectIDFromHex(classIDStr)
+
+	if db.InMemoryMode {
+		newTimetable := []interface{}{}
+		for _, v := range db.Store.Timetable {
+			e := v.(models.TimetableEntry)
+			if e.ClassID != classID {
+				newTimetable = append(newTimetable, v)
+			}
+		}
+		db.Store.Timetable = newTimetable
+		c.JSON(http.StatusOK, gin.H{"status": "cleared"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := db.Database.Collection("timetables").DeleteMany(ctx, bson.M{"class_id": classID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "cleared"})
 }

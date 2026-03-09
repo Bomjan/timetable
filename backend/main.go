@@ -16,8 +16,10 @@ func main() {
 	// Basic Entities
 	r.GET("/subjects", handlers.GetSubjects)
 	r.POST("/subjects", handlers.CreateSubject)
+	r.DELETE("/subjects/:id", handlers.DeleteSubject)
 	r.GET("/teachers", handlers.GetTeachers)
 	r.POST("/teachers", handlers.CreateTeacher)
+	r.DELETE("/teachers/:id", handlers.DeleteTeacher)
 	r.GET("/classes", handlers.GetClasses)
 	r.POST("/classes", handlers.CreateClass)
 	r.DELETE("/classes/:id", handlers.DeleteClass)
@@ -28,6 +30,8 @@ func main() {
 	r.POST("/timetable/update", handlers.UpdateSlot)
 	r.POST("/timetable/merge", handlers.MergeSlots)
 	r.POST("/timetable/split", handlers.SplitSlot)
+	r.POST("/timetable/save", handlers.SaveTimetable)
+	r.DELETE("/timetable/:class_id", handlers.ClearTimetable)
 
 	// Overrides
 	r.GET("/overrides/:class_id/:week", handlers.GetWeeklyOverride)

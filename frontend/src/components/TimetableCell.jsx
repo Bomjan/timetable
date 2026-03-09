@@ -1,47 +1,46 @@
 import React from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { AlertCircle, MoreVertical } from 'lucide-react';
 
-const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit }) => {
+const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit, isChanged }) => {
   const { 
     attributes, 
     listeners, 
-    setNodeRef: setDraggableRef, 
+    setNodeRef, 
     transform,
+    transition,
     isDragging 
-  } = useDraggable({
+  } = useSortable({
     id: `drag-${dayNum}-${periodNum}`,
     data: { day: dayNum, period: periodNum, entry }
   });
 
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: `drop-${dayNum}-${periodNum}`,
-    data: { day: dayNum, period: periodNum }
-  });
-
   const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: 50,
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
   } : undefined;
 
   const isOff = !entry.subject_id;
 
   return (
     <div 
-      ref={setDroppableRef}
+      ref={setNodeRef}
+      style={style}
       className={`min-h-[100px] p-2 transition-all relative group ${
-        isDragging ? 'opacity-0' : 'opacity-100'
+        isDragging ? 'opacity-50' : 'opacity-100'
       }`}
     >
       <div 
-        ref={setDraggableRef}
-        style={style}
         {...attributes}
         {...listeners}
         className={`w-full h-full rounded-lg p-3 flex flex-col justify-between cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md ${
           isOff 
             ? 'bg-slate-50 border border-dashed border-slate-200 text-slate-300' 
-            : 'bg-white border border-slate-200 shadow-sm border-l-4 border-l-blue-500'
+            : isChanged 
+              ? 'bg-yellow-50 border border-yellow-300 shadow-sm border-l-4 border-l-yellow-500'
+              : 'bg-white border border-slate-200 shadow-sm border-l-4 border-l-blue-500'
         }`}
       >
         {!isOff ? (

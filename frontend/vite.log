@@ -10,3 +10,4 @@ Port 5174 is in use, trying another one...
 
   ➜  Local:   http://localhost:5175/
   ➜  Network: use --host to expose
+12:26:55 PM [vite] (client) page reload index.html
