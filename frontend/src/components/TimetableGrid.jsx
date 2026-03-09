@@ -17,7 +17,7 @@ import RightDrawer from './RightDrawer';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const PERIOD_COUNT = 7;
-const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api, teachers, subjects }) => {
+const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api, teachers, subjects, saveToHistory }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -56,6 +56,11 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     const { active, over } = event;
     
     if (!over) return;
+    
+    // Save to history before any changes
+    if (active.id !== over.id || active.data.current?.isSubject || over.id === 'drawer-drop-zone') {
+       saveToHistory();
+    }
     
     // Handle subject drag from RightDrawer (Add)
     if (active.data.current?.isSubject) {
@@ -128,6 +133,7 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
   };
 
   const handleMerge = (entry) => {
+    saveToHistory();
     setTimetable(prev => {
       const newTimetable = [...prev];
       const idx = newTimetable.findIndex(e => e.day === entry.day && e.period === entry.period);
@@ -139,6 +145,7 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
   };
 
   const handleSplit = (entry) => {
+    saveToHistory();
     setTimetable(prev => {
       const newTimetable = [...prev];
       const idx = newTimetable.findIndex(e => e.day === entry.day && e.period === entry.period);

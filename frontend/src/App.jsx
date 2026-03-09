@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TimetableGrid from './components/TimetableGrid';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import SubjectsList from './components/SubjectsList';
 import TeachersList from './components/TeachersList';
+import { RotateCcw } from 'lucide-react';
 import PDFExportButton from './components/PDFExportButton';
 import ConfirmDialog from './components/ConfirmDialog';
 import axios from 'axios';
@@ -25,6 +26,31 @@ function App() {
   
   const [isComparing, setIsComparing] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  
+  // History for undo
+  const [history, setHistory] = useState([]);
+  const MAX_HISTORY = 20;
+
+  const saveToHistory = useCallback(() => {
+    setHistory(prev => {
+      const newHistory = [...prev, JSON.parse(JSON.stringify(timetable))];
+      if (newHistory.length > MAX_HISTORY) {
+        return newHistory.slice(newHistory.length - MAX_HISTORY);
+      }
+      return newHistory;
+    });
+  }, [timetable]);
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    
+    setHistory(prev => {
+      const newHistory = [...prev];
+      const previousState = newHistory.pop();
+      setTimetable(previousState);
+      return newHistory;
+    });
+  };
   
   // Custom confirm dialog state
   const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
@@ -127,6 +153,7 @@ function App() {
   };
 
   const handleClearTimetable = () => {
+    saveToHistory();
     requestConfirm(
       "Clear Timetable?",
       `Are you sure you want to clear the entire timetable for ${activeClass.name}? This action cannot be undone.`,
@@ -163,6 +190,20 @@ function App() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [timetable, initialTimetable, activeClass, week]);
+
+  // Keyboard shortcut for Undo (Ctrl+Z)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (history.length > 0) {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [history, handleUndo]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -271,6 +312,17 @@ function App() {
                       {isComparing ? 'Hide Changes' : 'Compare'}
                     </button>
                   )}
+                  
+                  <button 
+                    onClick={handleUndo}
+                    disabled={history.length === 0}
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg shadow-sm transition-all font-medium ${history.length === 0 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <RotateCcw size={16} />
+                    Undo
+                  </button>
+
                   <PDFExportButton 
                     targetId="timetable-grid" 
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 shadow-sm transition-all font-medium" 
@@ -305,6 +357,7 @@ function App() {
                   api={api}
                   teachers={teachers}
                   subjects={subjects}
+                  saveToHistory={saveToHistory}
                 />
               )}
             </div>
