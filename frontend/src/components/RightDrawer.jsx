@@ -3,7 +3,7 @@ import DraggableSubject from './DraggableSubject';
 import { Search, Trash2 } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 
-const RightDrawer = ({ api }) => {
+const RightDrawer = ({ api, active }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +11,9 @@ const RightDrawer = ({ api }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: 'drawer-drop-zone',
   });
+
+  // Only show trash/remove UI if dragging a grid cell, NOT when dragging a subject out
+  const showTrash = isOver && !active?.data?.current?.isSubject;
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -35,23 +38,23 @@ const RightDrawer = ({ api }) => {
     <div 
       ref={setNodeRef}
       className={`w-64 border-l flex flex-col h-full rounded-r-xl transition-colors duration-200 ${
-        isOver ? 'bg-red-50 border-red-200 shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]' : 'bg-slate-50 border-slate-200'
+        showTrash ? 'bg-red-50 border-red-200 shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]' : 'bg-slate-50 border-slate-200'
       }`}
     >
       <div className={`p-4 border-b rounded-tr-xl transition-colors duration-200 ${
-        isOver ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'
+        showTrash ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'
       }`}>
         <div className="flex items-center justify-between">
-          <h3 className={`font-bold transition-colors ${isOver ? 'text-red-700' : 'text-slate-800'}`}>
-            {isOver ? 'Remove Subject' : 'Subjects'}
+          <h3 className={`font-bold transition-colors ${showTrash ? 'text-red-700' : 'text-slate-800'}`}>
+            {showTrash ? 'Remove Subject' : 'Subjects'}
           </h3>
-          {isOver && <Trash2 size={18} className="text-red-500 animate-bounce" />}
+          {showTrash && <Trash2 size={18} className="text-red-500 animate-bounce" />}
         </div>
-        <p className={`text-xs mt-1 mb-3 transition-colors ${isOver ? 'text-red-500' : 'text-slate-500'}`}>
-          {isOver ? 'Drop here to clear cell' : 'Drag to timetable'}
+        <p className={`text-xs mt-1 mb-3 transition-colors ${showTrash ? 'text-red-500' : 'text-slate-500'}`}>
+          {showTrash ? 'Drop here to clear cell' : 'Drag to timetable'}
         </p>
         
-        {!isOver && (
+        {!showTrash && (
           <div className="relative animate-[fadeIn_0.2s_ease-out]">
             <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
             <input 
@@ -66,7 +69,7 @@ const RightDrawer = ({ api }) => {
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {isOver ? (
+        {showTrash ? (
           <div className="flex flex-col items-center justify-center h-full text-red-400 space-y-2 animate-pulse">
             <div className="p-4 bg-red-100 rounded-full text-red-600">
               <Trash2 size={32} />

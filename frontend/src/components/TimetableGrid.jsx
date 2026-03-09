@@ -331,7 +331,7 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
             </div>
           </SortableContext>
         </div>
-        <RightDrawer api={api} />
+        <RightDrawer api={api} active={active} />
       </DndContext>
     </div>
   );

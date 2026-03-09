@@ -16,13 +16,14 @@ const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, p
     data: { day: dayNum, period: periodNum, entry }
   });
 
-  const style = transform ? {
+  const style = isDragging && transform ? {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 1,
+    zIndex: 50,
     gridColumn: `span ${span}`,
   } : {
     gridColumn: `span ${span}`,
+    zIndex: 1,
   };
 
   const isOff = !entry.subject_id;
