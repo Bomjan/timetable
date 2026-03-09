@@ -57,7 +57,7 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     
     if (!over) return;
     
-    // Handle subject drag from RightDrawer
+    // Handle subject drag from RightDrawer (Add)
     if (active.data.current?.isSubject) {
       if (over.id.toString().startsWith('drag-')) {
         const overData = over.data.current;
@@ -94,6 +94,15 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
           }
           return newTimetable;
         });
+      }
+      return;
+    }
+
+    // Handle removal when dragging cell back to drawer
+    if (over.id === 'drawer-drop-zone') {
+      const activeData = active.data.current;
+      if (activeData && activeData.day && activeData.period) {
+        setTimetable(prev => prev.filter(e => !(e.day === activeData.day && e.period === activeData.period)));
       }
       return;
     }

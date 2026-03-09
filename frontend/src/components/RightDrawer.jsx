@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import DraggableSubject from './DraggableSubject';
-import { Search } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
+import { useDroppable } from '@dnd-kit/core';
 
 const RightDrawer = ({ api }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'drawer-drop-zone',
+  });
 
   useEffect(() => {
     const fetchSubjects = async () => {
@@ -27,25 +32,48 @@ const RightDrawer = ({ api }) => {
   );
 
   return (
-    <div className="w-64 bg-slate-50 border-l border-slate-200 flex flex-col h-full rounded-r-xl">
-      <div className="p-4 border-b border-slate-200 bg-white rounded-tr-xl">
-        <h3 className="font-bold text-slate-800">Subjects</h3>
-        <p className="text-xs text-slate-500 mt-1 mb-3">Drag to timetable</p>
-        
-        <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
-          <input 
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-slate-100 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-          />
+    <div 
+      ref={setNodeRef}
+      className={`w-64 border-l flex flex-col h-full rounded-r-xl transition-colors duration-200 ${
+        isOver ? 'bg-red-50 border-red-200 shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]' : 'bg-slate-50 border-slate-200'
+      }`}
+    >
+      <div className={`p-4 border-b rounded-tr-xl transition-colors duration-200 ${
+        isOver ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <h3 className={`font-bold transition-colors ${isOver ? 'text-red-700' : 'text-slate-800'}`}>
+            {isOver ? 'Remove Subject' : 'Subjects'}
+          </h3>
+          {isOver && <Trash2 size={18} className="text-red-500 animate-bounce" />}
         </div>
+        <p className={`text-xs mt-1 mb-3 transition-colors ${isOver ? 'text-red-500' : 'text-slate-500'}`}>
+          {isOver ? 'Drop here to clear cell' : 'Drag to timetable'}
+        </p>
+        
+        {!isOver && (
+          <div className="relative animate-[fadeIn_0.2s_ease-out]">
+            <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
+            <input 
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 bg-slate-100 border-none rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            />
+          </div>
+        )}
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {loading ? (
+        {isOver ? (
+          <div className="flex flex-col items-center justify-center h-full text-red-400 space-y-2 animate-pulse">
+            <div className="p-4 bg-red-100 rounded-full text-red-600">
+              <Trash2 size={32} />
+            </div>
+            <p className="text-sm font-medium">Clear Slot</p>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center p-4">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
           </div>
