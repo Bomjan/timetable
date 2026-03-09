@@ -52,21 +52,34 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     return data;
   }, [timetable, classId]);
 
+  const [active, setActive] = React.useState(null);
+  const [over, setOver] = React.useState(null);
+
+  const handleDragStart = (event) => {
+    setActive(event.active);
+  };
+
+  const handleDragOver = (event) => {
+    setOver(event.over);
+  };
+
   const handleDragEnd = (event) => {
-    const { active, over } = event;
+    const { active: endActive, over: endOver } = event;
+    setActive(null);
+    setOver(null);
     
-    if (!over) return;
+    if (!endOver) return;
     
     // Save to history before any changes
-    if (active.id !== over.id || active.data.current?.isSubject || over.id === 'drawer-drop-zone') {
+    if (endActive.id !== endOver.id || endActive.data.current?.isSubject || endOver.id === 'drawer-drop-zone') {
        saveToHistory();
     }
     
     // Handle subject drag from RightDrawer (Add)
-    if (active.data.current?.isSubject) {
-      if (over.id.toString().startsWith('drag-')) {
-        const overData = over.data.current;
-        const subject = active.data.current.subject;
+    if (endActive.data.current?.isSubject) {
+      if (endOver.id.toString().startsWith('drag-')) {
+        const overData = endOver.data.current;
+        const subject = endActive.data.current.subject;
 
         setTimetable(prev => {
           const newTimetable = [...prev];
@@ -104,17 +117,17 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     }
 
     // Handle removal when dragging cell back to drawer
-    if (over.id === 'drawer-drop-zone') {
-      const activeData = active.data.current;
+    if (endOver.id === 'drawer-drop-zone') {
+      const activeData = endActive.data.current;
       if (activeData && activeData.day && activeData.period) {
         setTimetable(prev => prev.filter(e => !(e.day === activeData.day && e.period === activeData.period)));
       }
       return;
     }
 
-    if (active.id !== over.id) {
-      const activeData = active.data.current;
-      const overData = over.data.current;
+    if (endActive.id !== endOver.id) {
+      const activeData = endActive.data.current;
+      const overData = endOver.data.current;
       const activeEntry = activeData.entry;
 
       const applyMove = (shiftNext = false) => {
@@ -173,11 +186,16 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     }
   };
 
-  const handleMerge = (entry) => {
+  const handleDragCancel = () => {
+    setActive(null);
+    setOver(null);
+  };
+
+  const handleMerge = (baseEntry) => {
     saveToHistory();
     setTimetable(prev => {
-      const newTimetable = prev.filter(e => !(e.day === entry.day && e.period === entry.period + 1));
-      const idx = newTimetable.findIndex(e => e.day === entry.day && e.period === entry.period);
+      const newTimetable = prev.filter(e => !(e.day === baseEntry.day && e.period === baseEntry.period + 1));
+      const idx = newTimetable.findIndex(e => e.day === baseEntry.day && e.period === baseEntry.period);
       if (idx !== -1) {
         newTimetable[idx] = { ...newTimetable[idx], duration: 2 };
       }
@@ -211,7 +229,10 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
       <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <div id="timetable-grid" className="flex-1 w-full relative">
           <div className="grid grid-cols-8 border-b border-slate-200 bg-slate-50">
