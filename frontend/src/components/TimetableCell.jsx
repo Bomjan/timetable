@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlertCircle, MoreVertical } from 'lucide-react';
 
-const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit, span = 1, canMerge = false }) => {
+const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit, span = 1, canMerge = false, isCollisionTarget = false }) => {
   const { 
     attributes, 
     listeners, 
@@ -40,6 +40,8 @@ const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, p
         {...(isOff ? {} : attributes)}
         {...(isOff ? {} : listeners)}
         className={`w-full h-full rounded-lg p-4 flex flex-col justify-between transition-all duration-200 ${
+          isCollisionTarget ? 'ring-2 ring-red-400 ring-offset-2 scale-[0.98]' : ''
+        } ${
           isOff 
             ? 'bg-slate-50/40 border border-slate-100/60' 
             : `bg-white border border-slate-200 cursor-grab active:cursor-grabbing hover:border-slate-300 hover:shadow-sm ${

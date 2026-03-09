@@ -115,20 +115,61 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
     if (active.id !== over.id) {
       const activeData = active.data.current;
       const overData = over.data.current;
+      const activeEntry = activeData.entry;
 
-      setTimetable(prev => {
-        const newTimetable = [...prev];
-        const idx1 = newTimetable.findIndex(e => e.day === activeData.day && e.period === activeData.period);
-        const idx2 = newTimetable.findIndex(e => e.day === overData.day && e.period === overData.period);
-        
-        if (idx1 !== -1) {
-          newTimetable[idx1] = { ...newTimetable[idx1], day: overData.day, period: overData.period };
+      const applyMove = (shiftNext = false) => {
+        setTimetable(prev => {
+          let newTimetable = [...prev];
+          
+          if (shiftNext) {
+            // Find class at overData.period + 1 on the same day
+            const collidingIdx = newTimetable.findIndex(e => e.day === overData.day && e.period === overData.period + 1);
+            if (collidingIdx !== -1) {
+              const colliding = newTimetable[collidingIdx];
+              // Boundary check for period 7
+              if (colliding.period >= 7) {
+                 // If at edge, just remove it or warn? User asked to shift. 
+                 // We'll filter it out if it hits 7, effectively 'pushing' it off the grid.
+                 newTimetable = newTimetable.filter((_, i) => i !== collidingIdx);
+              } else {
+                 newTimetable[collidingIdx] = { ...colliding, period: colliding.period + 1 };
+              }
+            }
+          }
+
+          const idx1 = newTimetable.findIndex(e => e.day === activeData.day && e.period === activeData.period);
+          const idx2 = newTimetable.findIndex(e => e.day === overData.day && e.period === overData.period);
+          
+          if (idx1 !== -1) {
+            newTimetable[idx1] = { ...newTimetable[idx1], day: overData.day, period: overData.period };
+          }
+          if (idx2 !== -1) {
+            newTimetable[idx2] = { ...newTimetable[idx2], day: activeData.day, period: activeData.period };
+          }
+          return newTimetable;
+        });
+      };
+
+      // Collision Detection for Merged Blocks
+      if (activeEntry?.duration > 1) {
+        if (overData.period >= PERIOD_COUNT) {
+          // Prevent dropping merged block at the very last period
+          return; 
         }
-        if (idx2 !== -1) {
-          newTimetable[idx2] = { ...newTimetable[idx2], day: activeData.day, period: activeData.period };
+
+        const nextCellIdx = timetable.findIndex(e => e.day === overData.day && e.period === overData.period + 1);
+        if (nextCellIdx !== -1 && timetable[nextCellIdx].subject_id) {
+          const collidingSubject = timetable[nextCellIdx].subject_name || "another class";
+          requestConfirm(
+            "Session Overlap",
+            `This 2-period block overlaps with ${collidingSubject}. Shift ${collidingSubject} forward or cancel?`,
+            () => applyMove(true)
+          );
+          return;
         }
-        return newTimetable;
-      });
+      }
+
+      applyMove(false);
     }
   };
 
@@ -235,6 +276,11 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
                         canMerge = !nextEntry?.subject_id || nextEntry.subject_id === entry.subject_id;
                       }
 
+                      // Collision Feedback
+                      const isCollisionTarget = active?.data?.current?.entry?.duration > 1 && 
+                                               over?.data?.current?.day === row.day_num && 
+                                               over?.data?.current?.period === pNum - 1;
+
                       cells.push(
                         <TimetableCell 
                           key={`${row.day_num}-${periodNum}`}
@@ -248,6 +294,7 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
                           isChanged={isChanged}
                           span={entry.duration || 1}
                           canMerge={canMerge}
+                          isCollisionTarget={isCollisionTarget}
                         />
                       );
                       
