@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, X, Check } from 'lucide-react';
 
-const TeachersList = ({ api, setToast, requestConfirm }) => {
+const TeachersList = ({ api, setToast, requestConfirm, onRefresh }) => {
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +47,7 @@ const TeachersList = ({ api, setToast, requestConfirm }) => {
       await api.post('/teachers', { name: newName.trim(), subject_ids });
       const teachersRes = await api.get('/teachers');
       setTeachers(teachersRes.data || []);
+      if (onRefresh) onRefresh();
       
       setNewName('');
       setSelectedSubjectId('');
@@ -74,6 +75,7 @@ const TeachersList = ({ api, setToast, requestConfirm }) => {
           // Refresh list
           const teachersRes = await api.get('/teachers');
           setTeachers(teachersRes.data || []);
+          if (onRefresh) onRefresh();
           if (setToast) {
             setToast({ show: true, message: 'Teacher deleted successfully.', type: 'success' });
             setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);

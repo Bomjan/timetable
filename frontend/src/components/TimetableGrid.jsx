@@ -17,7 +17,7 @@ import RightDrawer from './RightDrawer';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const PERIOD_COUNT = 7;
-const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api, teachers }) => {
+const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api, teachers, subjects }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -32,7 +32,20 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
       const row = { day_name: day, day_num: dayNum, periods: {} };
       for (let p = 1; p <= PERIOD_COUNT; p++) {
         const entry = timetable.find(e => e.day === dayNum && e.period === p);
-        row.periods[p] = entry || { class_id: classId, day: dayNum, period: p, duration: 1 };
+        if (entry) {
+          // Dynamic lookup for missing names
+          const subject = subjects?.find(s => s.id === entry.subject_id);
+          const teacher = teachers?.find(t => t.id === entry.teacher_id);
+          
+          row.periods[p] = {
+            ...entry,
+            subject_name: entry.subject_name || subject?.name || "",
+            subject_code: entry.subject_code || subject?.code || "",
+            teacher_name: entry.teacher_name || teacher?.name || ""
+          };
+        } else {
+          row.periods[p] = { class_id: classId, day: dayNum, period: p, duration: 1 };
+        }
       }
       data.push(row);
     });

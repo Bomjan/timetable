@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, X, Check } from 'lucide-react';
 
-const SubjectsList = ({ api, setToast, requestConfirm }) => {
+const SubjectsList = ({ api, setToast, requestConfirm, onRefresh }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -33,6 +33,7 @@ const SubjectsList = ({ api, setToast, requestConfirm }) => {
       setNewCode('');
       setIsAdding(false);
       fetchSubjects();
+      if (onRefresh) onRefresh();
       if (setToast) {
         setToast({ show: true, message: 'Subject created successfully!', type: 'success' });
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
@@ -53,6 +54,7 @@ const SubjectsList = ({ api, setToast, requestConfirm }) => {
         try {
           await api.delete(`/subjects/${id}`);
           fetchSubjects();
+          if (onRefresh) onRefresh();
           if (setToast) {
             setToast({ show: true, message: 'Subject deleted successfully.', type: 'success' });
             setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);

@@ -15,6 +15,7 @@ const api = axios.create({
 function App() {
   const [activeClass, setActiveClass] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [timetable, setTimetable] = useState([]);
   const [initialTimetable, setInitialTimetable] = useState([]);
@@ -60,9 +61,19 @@ function App() {
     }
   };
 
+  const fetchSubjects = async () => {
+    try {
+      const subjectsRes = await api.get('/subjects');
+      setSubjects(subjectsRes.data || []);
+    } catch (err) {
+      console.error("Failed to fetch subjects", err);
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
     fetchTeachers();
+    fetchSubjects();
   }, []);
 
   useEffect(() => {
@@ -181,8 +192,8 @@ function App() {
         />
         <main className="flex-1 overflow-auto p-6 bg-slate-50">
           
-          {currentView === 'Subjects' && <SubjectsList api={api} setToast={setToast} requestConfirm={requestConfirm} />}
-          {currentView === 'Teachers' && <TeachersList api={api} setToast={setToast} requestConfirm={requestConfirm} />}
+          {currentView === 'Subjects' && <SubjectsList api={api} setToast={setToast} requestConfirm={requestConfirm} onRefresh={fetchSubjects} />}
+          {currentView === 'Teachers' && <TeachersList api={api} setToast={setToast} requestConfirm={requestConfirm} onRefresh={fetchTeachers} />}
           {currentView === 'Settings' && (
             <div className="max-w-4xl mx-auto animate-[fadeIn_0.2s_ease-out]">
               <div className="mb-6">
@@ -293,6 +304,7 @@ function App() {
                   classId={activeClass.id}
                   api={api}
                   teachers={teachers}
+                  subjects={subjects}
                 />
               )}
             </div>
