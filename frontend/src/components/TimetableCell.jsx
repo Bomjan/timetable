@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlertCircle, MoreVertical } from 'lucide-react';
 
-const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit, span = 1 }) => {
+const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit, span = 1, canMerge = false }) => {
   const { 
     attributes, 
     listeners, 
@@ -73,22 +73,23 @@ const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, p
                 <button className="text-slate-300 hover:text-slate-500 p-1">
                   <MoreVertical size={14} />
                 </button>
-                <div className="absolute top-0 right-0 hidden group-hover/menu:block bg-white border border-slate-200 rounded shadow-lg z-[60] py-1 min-w-[120px]">
+                <div className="absolute top-0 right-0 hidden group-hover/menu:block bg-white border border-slate-200 rounded shadow-lg z-[60] py-1 min-w-[140px]">
                   {entry.duration > 1 ? (
                     <button 
                       onClick={(e) => { e.stopPropagation(); onSplit(entry); }}
-                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600 font-bold"
+                      className="w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 text-slate-600 font-bold border-b border-slate-100"
                     >
                       Split Block
                     </button>
-                  ) : (
+                  ) : canMerge ? (
                     <button 
                       onClick={(e) => { e.stopPropagation(); onMerge(entry); }}
-                      className="w-full text-left px-3 py-1 text-[11px] hover:bg-slate-50 text-slate-600 font-bold"
+                      className="w-full text-left px-3 py-2 text-[11px] hover:bg-slate-50 text-emerald-600 font-bold border-b border-slate-100 flex items-center justify-between"
                     >
-                      Merge with Next
+                      <span>Merge Right</span>
+                      <span className="text-emerald-400">→</span>
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

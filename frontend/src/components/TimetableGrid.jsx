@@ -135,12 +135,12 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
   const handleMerge = (entry) => {
     saveToHistory();
     setTimetable(prev => {
-      const newTimetable = [...prev];
+      const newTimetable = prev.filter(e => !(e.day === entry.day && e.period === entry.period + 1));
       const idx = newTimetable.findIndex(e => e.day === entry.day && e.period === entry.period);
       if (idx !== -1) {
         newTimetable[idx] = { ...newTimetable[idx], duration: 2 };
       }
-      return newTimetable.filter(e => !(e.day === entry.day && e.period === entry.period + 1));
+      return newTimetable;
     });
   };
 
@@ -150,7 +150,15 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
       const newTimetable = [...prev];
       const idx = newTimetable.findIndex(e => e.day === entry.day && e.period === entry.period);
       if (idx !== -1) {
-        newTimetable[idx] = { ...newTimetable[idx], duration: 1 };
+        const baseEntry = newTimetable[idx];
+        newTimetable[idx] = { ...baseEntry, duration: 1 };
+        
+        // Restore the second cell with identical data
+        newTimetable.push({
+          ...baseEntry,
+          period: baseEntry.period + 1,
+          duration: 1
+        });
       }
       return newTimetable;
     });
@@ -217,6 +225,16 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
                         }
                       }
 
+                      // Smart Merge Check
+                      let canMerge = false;
+                      const isOff = !entry.subject_id;
+                      const pNum = parseInt(periodNum);
+                      if (!isOff && pNum < PERIOD_COUNT && entry.duration === 1) {
+                        const nextEntry = row.periods[pNum + 1];
+                        // Can merge if next is OFF or same subject
+                        canMerge = !nextEntry?.subject_id || nextEntry.subject_id === entry.subject_id;
+                      }
+
                       cells.push(
                         <TimetableCell 
                           key={`${row.day_num}-${periodNum}`}
@@ -224,11 +242,12 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
                           originalEntry={originalEntry}
                           isComparing={isComparing}
                           dayNum={row.day_num}
-                          periodNum={parseInt(periodNum)}
+                          periodNum={pNum}
                           onMerge={handleMerge}
                           onSplit={handleSplit}
                           isChanged={isChanged}
                           span={entry.duration || 1}
+                          canMerge={canMerge}
                         />
                       );
                       
