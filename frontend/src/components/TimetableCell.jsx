@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AlertCircle, MoreVertical } from 'lucide-react';
 
-const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit }) => {
+const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, periodNum, onMerge, onSplit, span = 1 }) => {
   const { 
     attributes, 
     listeners, 
@@ -20,7 +20,10 @@ const TimetableCell = ({ entry, originalEntry, isComparing, isChanged, dayNum, p
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 1,
-  } : undefined;
+    gridColumn: `span ${span}`,
+  } : {
+    gridColumn: `span ${span}`,
+  };
 
   const isOff = !entry.subject_id;
   const wasOff = originalEntry && !originalEntry.subject_id;

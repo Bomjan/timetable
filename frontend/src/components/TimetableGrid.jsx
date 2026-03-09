@@ -187,41 +187,58 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
                   <div className="flex items-center justify-center p-4 bg-slate-50 font-bold text-slate-500 uppercase tracking-widest text-sm">
                     {row.day_name}
                   </div>
-                  {Object.entries(row.periods).map(([periodNum, entry]) => {
-                    let isChanged = false;
-                    let originalEntry = null;
-
-                    if (isComparing) {
-                      const originalEntryRaw = initialTimetable.find(e => e.day === row.day_num && e.period === parseInt(periodNum));
-                      if (originalEntryRaw) {
-                        const originalSubject = subjects?.find(s => s.id === originalEntryRaw.subject_id);
-                        const originalTeacher = teachers?.find(t => t.id === originalEntryRaw.teacher_id);
-                        originalEntry = {
-                          ...originalEntryRaw,
-                          subject_name: originalEntryRaw.subject_name || originalSubject?.name || "",
-                          subject_code: originalEntryRaw.subject_code || originalSubject?.code || "",
-                          teacher_name: originalEntryRaw.teacher_name || originalTeacher?.name || ""
-                        };
-                        isChanged = originalEntry.subject_id !== entry.subject_id || originalEntry.duration !== entry.duration;
-                      } else {
-                        isChanged = !!entry.subject_id;
+                  {(() => {
+                    const cells = [];
+                    let skipCount = 0;
+                    
+                    Object.entries(row.periods).forEach(([periodNum, entry]) => {
+                      if (skipCount > 0) {
+                        skipCount--;
+                        return;
                       }
-                    }
 
-                    return (
-                      <TimetableCell 
-                        key={`${row.day_num}-${periodNum}`}
-                        entry={entry}
-                        originalEntry={originalEntry}
-                        isComparing={isComparing}
-                        dayNum={row.day_num}
-                        periodNum={parseInt(periodNum)}
-                        onMerge={handleMerge}
-                        onSplit={handleSplit}
-                        isChanged={isChanged}
-                      />
-                    );
-                  })}
+                      let isChanged = false;
+                      let originalEntry = null;
+
+                      if (isComparing) {
+                        const originalEntryRaw = initialTimetable.find(e => e.day === row.day_num && e.period === parseInt(periodNum));
+                        if (originalEntryRaw) {
+                          const originalSubject = subjects?.find(s => s.id === originalEntryRaw.subject_id);
+                          const originalTeacher = teachers?.find(t => t.id === originalEntryRaw.teacher_id);
+                          originalEntry = {
+                            ...originalEntryRaw,
+                            subject_name: originalEntryRaw.subject_name || originalSubject?.name || "",
+                            subject_code: originalEntryRaw.subject_code || originalSubject?.code || "",
+                            teacher_name: originalEntryRaw.teacher_name || originalTeacher?.name || ""
+                          };
+                          isChanged = originalEntry.subject_id !== entry.subject_id || originalEntry.duration !== entry.duration;
+                        } else {
+                          isChanged = !!entry.subject_id;
+                        }
+                      }
+
+                      cells.push(
+                        <TimetableCell 
+                          key={`${row.day_num}-${periodNum}`}
+                          entry={entry}
+                          originalEntry={originalEntry}
+                          isComparing={isComparing}
+                          dayNum={row.day_num}
+                          periodNum={parseInt(periodNum)}
+                          onMerge={handleMerge}
+                          onSplit={handleSplit}
+                          isChanged={isChanged}
+                          span={entry.duration || 1}
+                        />
+                      );
+                      
+                      if (entry.duration > 1) {
+                        skipCount = entry.duration - 1;
+                      }
+                    });
+                    
+                    return cells;
+                  })()}
                 </div>
               ))}
             </div>

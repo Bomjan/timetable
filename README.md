@@ -56,18 +56,33 @@ Timetable Pro is a high-performance, modern school timetable management system. 
    ```
    *The application will be available at http://localhost:5173*
 
-## Deployment to GitHub Pages
+## Deployment
 
-The project includes an automated deployment pipeline using GitHub Actions.
+#### Frontend (GitHub Pages)
 
-### Deployment Steps
+The frontend is configured to deploy automatically to GitHub Pages via GitHub Actions.
 
-1. Push your changes to the main branch of your GitHub repository.
-2. Navigate to your repository settings on GitHub.
-3. Select **Settings** from the top menu, then click on **Pages** in the left sidebar.
-4. Under **Build and deployment**, ensure the **Source** is set to **GitHub Actions**.
-5. The deployment workflow will trigger automatically and publish the site to your GitHub Pages URL.
+1.  Push your changes to the `main` branch.
+2.  In your GitHub repository, go to **Settings > Pages**.
+3.  Under **Build and deployment > Source**, select **GitHub Actions**.
+4.  The site will be available at `https://<your-username>.github.io/timetable/`.
+
+> [!IMPORTANT]
+> GitHub Pages only hosts static files (the frontend). To make the application functional online, you must host the backend and database separately.
+
+#### Backend & Database (Hosting)
+
+To host the backend API and MongoDB:
+
+1.  **Database**: Use [MongoDB Atlas](https://www.mongodb.com/products/platform/atlas-database) (Free Tier) to host your database. Update your `MONGODB_URI` environment variable with the connection string.
+2.  **API**: Host the Go backend on a platform like [Render](https://render.com/), [Railway](https://railway.app/), or any VPS.
+    - Set the `PORT` environment variable (usually `8080`).
+    - Set `MONGODB_URI` to your Atlas connection string.
+3.  **Frontend Configuration**:
+    - In your GitHub repository, go to **Settings > Secrets and variables > Actions**.
+    - Add a new **Variable** (not secret) named `VITE_API_URL` and set its value to your hosted backend URL (e.g., `https://your-api.onrender.com`).
+    - Redeploy the frontend.
 
 ---
 
-This project is a collaborative effort by Sundrabomjan and the Antigravity AI assistant.
+**Co-authored-by**: Sundrabomjan & Antigravity.
