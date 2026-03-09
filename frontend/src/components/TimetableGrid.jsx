@@ -17,7 +17,7 @@ import RightDrawer from './RightDrawer';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const PERIOD_COUNT = 7;
-const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api }) => {
+const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing, classId, api, teachers }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -55,14 +55,18 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
           const idx = newTimetable.findIndex(e => e.day === overData.day && e.period === overData.period);
           
           if (idx !== -1) {
+            const assignedTeacher = teachers?.find(t => t.subject_ids?.includes(subject.id));
             newTimetable[idx] = { 
               ...newTimetable[idx], 
               subject_id: subject.id,
               subject_name: subject.name,
               subject_code: subject.code,
+              teacher_id: assignedTeacher?.id || null,
+              teacher_name: assignedTeacher?.name || "",
               duration: 1 
             };
           } else {
+            const assignedTeacher = teachers?.find(t => t.subject_ids?.includes(subject.id));
             newTimetable.push({
               class_id: classId,
               day: overData.day,
@@ -70,7 +74,9 @@ const TimetableGrid = ({ timetable, setTimetable, initialTimetable, isComparing,
               duration: 1,
               subject_id: subject.id,
               subject_name: subject.name,
-              subject_code: subject.code
+              subject_code: subject.code,
+              teacher_id: assignedTeacher?.id || null,
+              teacher_name: assignedTeacher?.name || ""
             });
           }
           return newTimetable;

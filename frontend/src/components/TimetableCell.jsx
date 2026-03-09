@@ -47,7 +47,7 @@ const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit, isChanged }
           <>
             <div className="flex justify-between items-start">
               <h4 className="font-bold text-slate-800 leading-tight">
-                {entry.subject_name || "Physics"}
+                {entry.subject_name || ""}
               </h4>
               <div className="relative group/menu">
                 <button className="text-slate-300 hover:text-slate-500">
@@ -73,7 +73,7 @@ const TimetableCell = ({ entry, dayNum, periodNum, onMerge, onSplit, isChanged }
               </div>
             </div>
             <div className="mt-2 text-[11px] text-slate-500 space-y-1">
-              <p className="font-medium text-slate-600">{entry.teacher_name || "Mr. Smith"}</p>
+              <p className="font-medium text-slate-600">{entry.teacher_name || ""}</p>
               {entry.duration > 1 && (
                 <span className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full font-bold">
                   {entry.duration} Periods

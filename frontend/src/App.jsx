@@ -15,6 +15,7 @@ const api = axios.create({
 function App() {
   const [activeClass, setActiveClass] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [timetable, setTimetable] = useState([]);
   const [initialTimetable, setInitialTimetable] = useState([]);
   const [week, setWeek] = useState(0); 
@@ -50,8 +51,18 @@ function App() {
     }
   };
 
+  const fetchTeachers = async () => {
+    try {
+      const teachersRes = await api.get('/teachers');
+      setTeachers(teachersRes.data || []);
+    } catch (err) {
+      console.error("Failed to fetch teachers", err);
+    }
+  };
+
   useEffect(() => {
     fetchClasses();
+    fetchTeachers();
   }, []);
 
   useEffect(() => {
@@ -281,6 +292,7 @@ function App() {
                   isComparing={isComparing}
                   classId={activeClass.id}
                   api={api}
+                  teachers={teachers}
                 />
               )}
             </div>
